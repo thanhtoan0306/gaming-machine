@@ -11,7 +11,11 @@ export default class PreloadScene extends Scene {
 
         this.load.bitmapFont('freedom', 
             './assets/font.png', 
-            './assets/font.fnt')        
+            './assets/font.fnt')
+
+        this.load.audio('spin', './assets/spin.mp3');
+        this.load.audio('kaching', './assets/kaching.mp3');
+
     }
 
     init(){

@@ -7,8 +7,14 @@ export default class Reel extends GameObjects.Container {
 
         this.scene = scene
         scene.add.existing(this)
+        this.kachingSound = null; // Khai báo biến âm thanh
 
         this._init(scene, config, slots)
+    }
+
+    preload() {
+        // Tải âm thanh trong phương thức preload của scene
+        this.scene.load.audio('spin', './assets/kaching.mp3');
     }
 
     _init(scene, config, slots){
@@ -81,13 +87,17 @@ export default class Reel extends GameObjects.Container {
         this.iterate(( slot ) => this._move( slot ))        
     }
 
-    stopSpin(resultSlots, stopDelay){   
-        
+    stopSpin(resultSlots, stopDelay, kachingSound){   
         this.resultSlots[0] = resultSlots[2] ? resultSlots[2] : 0
         this.resultSlots[1] = resultSlots[1] ? resultSlots[1] : 0
         this.resultSlots[2] = resultSlots[0] ? resultSlots[0] : 0
+        console.log('stopSpin');
+        if (!this.kachingSound) {
+            this.kachingSound = this.scene.sound.add('kaching'); // Tạo âm thanh nếu chưa có
+        }
+         // Phát âm thanh
         
-        setTimeout(()=> this.slowdown = true, stopDelay)
+        setTimeout(() => { this.slowdown = true; this.kachingSound.play(); ;console.log('hold', resultSlots)}, stopDelay)
     }
     
 }

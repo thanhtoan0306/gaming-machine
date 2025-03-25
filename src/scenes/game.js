@@ -4,18 +4,21 @@ import Machine from '../objects/machine'
 import Button from '../objects/button'
 import PayTable from '../objects/payTable'
 import DebugBar from '../objects/debugBar'
-
+let spinSound;
 export default class GameScene extends Scene {
     constructor() { super({ key: 'Game' }) }
-
     init() {
         this.balance = config.payTable.startBalance
+        // this.sound = {
+        //     kachingSound: this.sound.add('kaching')
+        // }
 
         this._addSlotMachine()
         this._addBalanceBlock()
         this._addSpinButton()
         this._addPayTable()
         this._addDebugBar()
+        
     }
 
     _addSlotMachine(){
@@ -23,7 +26,7 @@ export default class GameScene extends Scene {
             config.size.centerX, 
             config.size.centerY - 100, 
             config.game,
-            config.payTable.payment)
+            config.payTable.payment, this.sound.add('kaching'))
     }
 
     _addSpinButton(){
@@ -42,6 +45,10 @@ export default class GameScene extends Scene {
             this.machine.startSpin()
             this.spinButton.disable()
 
+            spinSound = this.sound.add('spin');
+            spinSound.play();
+
+
             let machineConfig = config.game.machine,
                 stopDelay = machineConfig.stopDelay,
                 reelStopDelay = machineConfig.reelStopDelay,
@@ -49,6 +56,7 @@ export default class GameScene extends Scene {
                 delay = stopDelay + reelStopDelay * reelsCount
 
             this._updateBalance(-1)
+            setTimeout(() => spinSound.stop(), delay)
             setTimeout(()=> this._checkResults(), delay + 1000)
         }
     }

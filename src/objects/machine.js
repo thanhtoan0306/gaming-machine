@@ -1,9 +1,10 @@
 import Reel from './reel'
 
 export default class Machine{
-    constructor(scene, x, y, config, payTable) {        
+    constructor(scene, x, y, config, payTable, sound) {        
         this.config = config.machine
         this.scene = scene
+        this.sound = sound;
 
         this.x = x - this.config.width / 2
         this.y = y - this.config.height / 2
@@ -70,7 +71,7 @@ export default class Machine{
             this.config.reelStopDelay * this.reels.length)
 
         this.reels.forEach( (reel, i) => reel.stopSpin( this.resultSlots[i], 
-            this.config.reelStopDelay * i ) )
+            this.config.reelStopDelay * i ), this.sound )
     }
 
     _finish(){
