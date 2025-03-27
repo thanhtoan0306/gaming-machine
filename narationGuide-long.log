@@ -1,0 +1,410 @@
+DETAILED TECHNICAL GUIDE - SLOT MACHINE GAME WITH PHASER 3
+====================================================
+
+MODULE 1: PROJECT INITIALIZATION
+------------------------------
+
+1.1 Project Setup
+```bash
+mkdir slot-machine
+cd slot-machine
+npm init -y
+```
+
+1.2 Installing Dependencies
+```bash
+npm install phaser@3.15.1
+npm install --save-dev typescript webpack webpack-cli webpack-dev-server
+npm install --save-dev @babel/core @babel/preset-env babel-loader
+npm install --save-dev html-webpack-plugin clean-webpack-plugin
+```
+
+1.3 TypeScript Configuration (tsconfig.json)
+```json
+{
+  "compilerOptions": {
+    "target": "es5",
+    "module": "commonjs",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "lib": ["dom", "es5", "es6"],
+    "outDir": "./dist"
+  }
+}
+```
+
+1.4 Webpack Configuration (webpack.config.js)
+```javascript
+const path = require('path');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const CleanWebpackPlugin = require('clean-webpack-plugin');
+
+module.exports = {
+  entry: './src/game.ts',
+  output: {
+    filename: 'bundle.js',
+    path: path.resolve(__dirname, 'dist')
+  },
+  module: {
+    rules: [
+      {
+        test: /\.ts$/,
+        use: 'babel-loader',
+        exclude: /node_modules/
+      }
+    ]
+  },
+  plugins: [
+    new CleanWebpackPlugin(),
+    new HtmlWebpackPlugin({
+      template: './src/index.html'
+    })
+  ],
+  devServer: {
+    contentBase: './dist',
+    hot: true
+  }
+};
+```
+
+MODULE 2: GAME STRUCTURE
+----------------------
+
+2.1 Basic Game Configuration (src/config.ts)
+```typescript
+import 'phaser';
+
+export const GameConfig: Phaser.Types.Core.GameConfig = {
+    type: Phaser.AUTO,
+    width: 800,
+    height: 600,
+    physics: {
+        default: 'arcade',
+        arcade: {
+            gravity: { y: 0 },
+            debug: false
+        }
+    },
+    scene: {
+        preload: preload,
+        create: create,
+        update: update
+    }
+};
+```
+
+2.2 Main Game Class (src/game.ts)
+```typescript
+import 'phaser';
+import { GameConfig } from './config';
+
+export class SlotMachine extends Phaser.Game {
+    constructor() {
+        super(GameConfig);
+    }
+}
+
+window.onload = () => {
+    new SlotMachine();
+};
+```
+
+2.3 Main Scene Structure (src/scenes/MainScene.ts)
+```typescript
+export class MainScene extends Phaser.Scene {
+    private reels: Reel[];
+    private spinButton: Phaser.GameObjects.Sprite;
+    private isSpinning: boolean;
+
+    constructor() {
+        super({ key: 'MainScene' });
+        this.reels = [];
+        this.isSpinning = false;
+    }
+
+    preload(): void {
+        // Asset loading code here
+    }
+
+    create(): void {
+        // Scene setup code here
+    }
+
+    update(): void {
+        // Game loop code here
+    }
+}
+```
+
+MODULE 3: ASSET MANAGEMENT
+------------------------
+
+3.1 Asset Loading (src/scenes/MainScene.ts - preload method)
+```typescript
+preload(): void {
+    // Load symbol sprites
+    this.load.spritesheet('symbols', 'assets/symbols.png', {
+        frameWidth: 64,
+        frameHeight: 64
+    });
+
+    // Load UI elements
+    this.load.image('background', 'assets/background.png');
+    this.load.image('frame', 'assets/frame.png');
+    this.load.spritesheet('button', 'assets/button.png', {
+        frameWidth: 180,
+        frameHeight: 64
+    });
+
+    // Load audio
+    this.load.audio('spin', 'assets/sounds/spin.mp3');
+    this.load.audio('win', 'assets/sounds/win.mp3');
+    this.load.audio('stop', 'assets/sounds/stop.mp3');
+}
+```
+
+MODULE 4: REEL MECHANICS
+----------------------
+
+4.1 Reel Class (src/components/Reel.ts)
+```typescript
+export class Reel {
+    private scene: Phaser.Scene;
+    private symbols: Phaser.GameObjects.Sprite[];
+    private position: number;
+    private spinning: boolean;
+    private stopPosition: number;
+
+    constructor(scene: Phaser.Scene, x: number, y: number) {
+        this.scene = scene;
+        this.symbols = [];
+        this.position = 0;
+        this.spinning = false;
+        this.init(x, y);
+    }
+
+    private init(x: number, y: number): void {
+        // Create symbol sprites
+        for (let i = 0; i < 5; i++) {
+            const symbol = this.scene.add.sprite(x, y + (i * 64), 'symbols');
+            this.symbols.push(symbol);
+        }
+    }
+
+    public spin(): void {
+        this.spinning = true;
+        // Spin animation logic
+    }
+
+    public stop(position: number): Promise<void> {
+        return new Promise((resolve) => {
+            this.stopPosition = position;
+            // Stop animation logic
+            this.spinning = false;
+            resolve();
+        });
+    }
+
+    public update(): void {
+        if (this.spinning) {
+            // Update spinning animation
+            this.updateSymbolPositions();
+        }
+    }
+}
+```
+
+4.2 Spin Animation Logic
+```typescript
+private updateSymbolPositions(): void {
+    const speed = 10;
+    for (let symbol of this.symbols) {
+        symbol.y += speed;
+        if (symbol.y >= this.scene.game.config.height + 32) {
+            symbol.y = -32;
+            // Randomize symbol frame if still spinning
+            if (this.spinning) {
+                symbol.setFrame(Phaser.Math.Between(0, 5));
+            }
+        }
+    }
+}
+```
+
+MODULE 5: WIN DETECTION
+---------------------
+
+5.1 PayTable Configuration (src/config/payTable.ts)
+```typescript
+export const PayTable = {
+    combinations: [
+        {
+            symbols: [0, 0, 0], // Three of symbol 0
+            multiplier: 50
+        },
+        {
+            symbols: [1, 1, 1], // Three of symbol 1
+            multiplier: 40
+        }
+        // ... more combinations
+    ]
+};
+```
+
+5.2 Win Detection Logic (src/utils/WinCalculator.ts)
+```typescript
+export class WinCalculator {
+    private static checkLine(symbols: number[]): number {
+        for (const combo of PayTable.combinations) {
+            if (this.matchesCombo(symbols, combo.symbols)) {
+                return combo.multiplier;
+            }
+        }
+        return 0;
+    }
+
+    private static matchesCombo(symbols: number[], combo: number[]): boolean {
+        return symbols.every((symbol, index) => symbol === combo[index]);
+    }
+
+    public static calculateWin(reelPositions: number[][]): number {
+        let totalWin = 0;
+        // Check each payline
+        for (const line of this.getPaylines(reelPositions)) {
+            totalWin += this.checkLine(line);
+        }
+        return totalWin;
+    }
+}
+```
+
+MODULE 6: DEBUG FEATURES
+----------------------
+
+6.1 Debug Panel Class (src/debug/DebugPanel.ts)
+```typescript
+export class DebugPanel {
+    private scene: Phaser.Scene;
+    private container: Phaser.GameObjects.Container;
+    private symbols: Phaser.GameObjects.Sprite[];
+
+    constructor(scene: Phaser.Scene) {
+        this.scene = scene;
+        this.init();
+    }
+
+    private init(): void {
+        this.container = this.scene.add.container(10, this.scene.game.config.height - 100);
+        this.createSymbolSelectors();
+        this.createControls();
+    }
+
+    private createSymbolSelectors(): void {
+        // Create draggable symbols for result manipulation
+        this.symbols = [];
+        for (let i = 0; i < 5; i++) {
+            const symbol = this.scene.add.sprite(i * 70, 0, 'symbols', i)
+                .setInteractive({ draggable: true });
+            this.symbols.push(symbol);
+            this.container.add(symbol);
+        }
+    }
+
+    public setResult(positions: number[][]): void {
+        // Set specific reel positions for testing
+    }
+}
+```
+
+MODULE 7: POLISH AND EFFECTS
+--------------------------
+
+7.1 Particle Effects (src/effects/WinEffect.ts)
+```typescript
+export class WinEffect {
+    private scene: Phaser.Scene;
+    private emitter: Phaser.GameObjects.Particles.ParticleEmitter;
+
+    constructor(scene: Phaser.Scene) {
+        this.scene = scene;
+        this.init();
+    }
+
+    private init(): void {
+        this.emitter = this.scene.add.particles(0, 0, 'particle', {
+            speed: { min: -100, max: 100 },
+            angle: { min: 0, max: 360 },
+            scale: { start: 0.5, end: 0 },
+            blendMode: 'ADD',
+            lifespan: 1000,
+            gravityY: 200
+        });
+    }
+
+    public playAt(x: number, y: number): void {
+        this.emitter.setPosition(x, y);
+        this.emitter.explode(20);
+    }
+}
+```
+
+7.2 Sound Management (src/audio/SoundManager.ts)
+```typescript
+export class SoundManager {
+    private scene: Phaser.Scene;
+    private sounds: Map<string, Phaser.Sound.BaseSound>;
+
+    constructor(scene: Phaser.Scene) {
+        this.scene = scene;
+        this.sounds = new Map();
+        this.init();
+    }
+
+    private init(): void {
+        // Initialize sound effects with proper settings
+        this.sounds.set('spin', this.scene.sound.add('spin', { loop: true }));
+        this.sounds.set('win', this.scene.sound.add('win'));
+        this.sounds.set('stop', this.scene.sound.add('stop'));
+    }
+
+    public play(key: string): void {
+        const sound = this.sounds.get(key);
+        if (sound) {
+            sound.play();
+        }
+    }
+
+    public stop(key: string): void {
+        const sound = this.sounds.get(key);
+        if (sound) {
+            sound.stop();
+        }
+    }
+}
+```
+
+OPTIMIZATION TIPS
+---------------
+1. Asset Optimization:
+   - Use texture atlases for symbols
+   - Compress audio files
+   - Implement proper asset preloading
+
+2. Memory Management:
+   - Object pooling for particles
+   - Proper cleanup of event listeners
+   - Dispose of unused textures
+
+3. Performance:
+   - Use requestAnimationFrame for smooth animations
+   - Implement proper garbage collection
+   - Optimize render calls
+
+4. Code Organization:
+   - Follow TypeScript best practices
+   - Implement proper error handling
+   - Use design patterns (State, Observer, etc.)
+
+Remember to implement proper error handling and loading states throughout the application. Each module should be well-documented and follow TypeScript best practices for type safety and code organization.
