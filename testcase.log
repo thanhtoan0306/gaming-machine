@@ -1,0 +1,61 @@
+# Test Cases for Slot Machine App
+
+## Basic Functionality
+1. Verify reel initialization
+2. Check slot symbols loading
+3. Test spin button click
+4. Verify reel spinning animation
+5. Test stop button click
+6. Check sound effects during spin
+7. Verify sound effects on win
+8. Test multiple consecutive spins
+9. Check balance update after spin
+10. Verify paytable display
+
+## Winning Combinations
+11. Test 3xBAR combination
+12. Verify BAR combination payout
+13. Check 2xBAR combination
+14. Test 7 symbol combination
+15. Verify Cherry combination
+16. Test mixed BAR combinations
+17. Check Cherry and 7 mixed combination
+18. Verify multiple winning lines
+19. Test maximum payout scenario
+20. Check minimum payout scenario
+
+## Edge Cases
+21. Test spin with zero balance
+22. Verify behavior on rapid button clicks
+23. Check animation during network latency
+24. Test app behavior on low memory
+25. Verify sound mute functionality
+26. Test landscape/portrait orientation
+27. Check app behavior on device rotation
+28. Verify high score persistence
+29. Test app after long idle time
+30. Check behavior on interrupted spin
+
+## Performance
+31. Measure spin animation FPS
+32. Test memory usage during gameplay
+33. Verify CPU usage during spin
+34. Check battery consumption
+35. Test app launch time
+36. Verify response time on button press
+37. Check animation smoothness
+38. Test sound effect latency
+39. Verify loading time of assets
+40. Check performance on low-end devices
+
+## Compatibility
+41. Test on different screen sizes
+42. Verify on various Android versions
+43. Check iOS compatibility
+44. Test on tablets
+45. Verify on different browsers
+46. Check touch screen responsiveness
+47. Test with different input methods
+48. Verify accessibility features
+49. Check localization support
+50. Test with different network conditions
